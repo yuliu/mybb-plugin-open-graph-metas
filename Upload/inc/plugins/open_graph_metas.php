@@ -30,7 +30,7 @@ function open_graph_metas_info()
 		'authorsite'	=> 'https://github.com/yuliu/mybb-plugin-open-graph-metas',
 		'version'		=> '0.1',
 		'compatibility'	=> '18*',
-		'codename'		=> 'noyle-open_graph_metas',
+		'codename'		=> 'noyle_open_graph_metas',
 	);
 }
 
