@@ -20,6 +20,15 @@ define('OPEN_GRAPH_METAS_DESC_MAX_LENGTH', 250);
 // Custom logo.
 define('OPEN_GRAPH_METAS_DEFAULT_LOGO', '');
 
+// Custom Description.
+define('OPEN_GRAPH_METAS_DEFAULT_DESC', '"adfsdfdsaf",\'fdsafsafsd\'');
+
+// Facebook AppID
+define('OPEN_GRAPH_METAS_FB_APPID', '');
+
+// Image Maximum Dimensions
+define('OPEN_GRAPH_METAS_IMG_MAX_DIMS', '500|500');
+
 function open_graph_metas_info()
 {
 	return array(
@@ -43,7 +52,12 @@ function open_graph_metas_info()
  */
 function open_graph_metas_helper_func_get_description($in)
 {
-	return my_substr(htmlspecialchars_uni($in), 0, OPEN_GRAPH_METAS_DESC_MAX_LENGTH)."\n...";
+	$out = htmlspecialchars_uni($in);
+	if(my_strlen($out) > OPEN_GRAPH_METAS_DESC_MAX_LENGTH)
+	{
+		$out = my_substr($out, 0, OPEN_GRAPH_METAS_DESC_MAX_LENGTH)."...";
+	}
+	return $out;
 }
 
 /**
@@ -76,21 +90,51 @@ function open_graph_metas_helper_func_get_logo()
 
 $plugins->add_hook('global_end', 'open_graph_metas_show_og_info');
 
-$plugins->add_hook('forumdisplay_end', 'open_graph_metas_show_forum_description_forumdisplay');
-$plugins->add_hook('showthread_threaded', 'open_graph_metas_show_thread_description_showthread_threaded');
-$plugins->add_hook('showthread_linear', 'open_graph_metas_show_thread_description_showthread_linear');
+$plugins->add_hook('forumdisplay_end', 'open_graph_metas_show_forum_forumdisplay');
+$plugins->add_hook('showthread_threaded', 'open_graph_metas_show_thread_showthread_threaded');
+$plugins->add_hook('showthread_linear', 'open_graph_metas_show_thread_showthread_linear');
+$plugins->add_hook('member_profile_end', 'open_graph_metas_show_profile_member_profile');
 
 function open_graph_metas_show_og_info()
 {
 	global $mybb, $headerinclude;
+	if(defined('OPEN_GRAPH_METAS_FB_APPID') && !empty(OPEN_GRAPH_METAS_FB_APPID))
+	{
+		$headerinclude .= "\n<meta property=\"fb:app_id\" content=\"".OPEN_GRAPH_METAS_FB_APPID."\" />";
+	}
 	$headerinclude .= "\n<meta property=\"og:site_name\" content=\"{$mybb->settings['bbname']}\" />";
-	$headerinclude .= "\n<meta property=\"og:type\" content=\"object\" />";
+	$headerinclude .= "\n<meta property=\"og:type\" content=\"website\" />";
+
+	if(!defined('THIS_SCRIPT') || THIS_SCRIPT != 'forumdisplay.php' || THIS_SCRIPT != 'showthread.php' || THIS_SCRIPT != 'member.php')
+	{
+		if(!defined('OPEN_GRAPH_METAS_FB_APPID') || empty(OPEN_GRAPH_METAS_DEFAULT_DESC))
+		{
+			$desc = $mybb->settings['bbname'];
+		}
+		else
+		{
+			$desc = OPEN_GRAPH_METAS_DEFAULT_DESC;
+		}
+		$desc = open_graph_metas_helper_func_get_description($desc);
+		$url = open_graph_metas_helper_func_get_url('');
+		$image = open_graph_metas_helper_func_get_logo();
+		$headerinclude .= "\n<meta property=\"og:url\" content=\"{$url}\" />";
+		$headerinclude .= "\n<meta property=\"og:description\" content=\"{$desc}\" />";
+		$headerinclude .= "\n<meta property=\"og:image\" content=\"{$image}\" />";
+	}
 }
 
-function open_graph_metas_show_forum_description_forumdisplay()
+function open_graph_metas_show_forum_forumdisplay()
 {
 	global $headerinclude, $mybb, $foruminfo;
-	$desc = open_graph_metas_helper_func_get_description($foruminfo['description']);
+	if(!empty($foruminfo['description']))
+	{
+		$desc = open_graph_metas_helper_func_get_description($foruminfo['description']);
+	}
+	else
+	{
+		$desc = $foruminfo['name'];
+	}
 
 	global $fid, $page;
 	if($page > 1)
@@ -111,7 +155,7 @@ function open_graph_metas_show_forum_description_forumdisplay()
 	$headerinclude .= "\n<meta property=\"og:image\" content=\"{$image}\" />";
 }
 
-function open_graph_metas_show_thread_description_showthread_threaded()
+function open_graph_metas_show_thread_showthread_threaded()
 {
 	global $mybb, $forum, $thread;
 	$parser_options = array(
@@ -126,7 +170,7 @@ function open_graph_metas_show_thread_description_showthread_threaded()
 	global $parser, $showpost;
 	$desc = open_graph_metas_helper_func_get_description($parser->parse_message($showpost['message'], $parser_options));
 
-	global $tid, $pid, $page, $highlight, $threadmode;
+	global $tid, $pid, $page, $highlight;
 	if(!empty($mybb->input['pid']))
 	{
 		$url = str_replace(array("{tid}", "{pid}"), array($tid, $pid), THREAD_URL_POST);
@@ -139,6 +183,24 @@ function open_graph_metas_show_thread_description_showthread_threaded()
 	{
 		$url = str_replace("{tid}", $tid, THREAD_URL);
 	}
+
+	$threadmode = "";
+	if($mybb->seo_support == true)
+	{
+		if($mybb->get_input('highlight'))
+		{
+			$threadmode = "&amp;mode=threaded";
+		}
+		else
+		{
+			$threadmode = "?mode=threaded";
+		}
+	}
+	else
+	{
+		$threadmode = "&amp;mode=threaded";
+	}
+
 	$url = open_graph_metas_helper_func_get_url($url.$highlight.$threadmode);
 	if(!empty($mybb->input['pid']))
 	{
@@ -147,7 +209,7 @@ function open_graph_metas_show_thread_description_showthread_threaded()
 
 	if($showpost['userusername'])
 	{
-		$useravatar = format_avatar($showpost['avatar'], $showpost['avatardimensions'], $mybb->settings['postmaxavatarsize']);
+		$useravatar = format_avatar($showpost['avatar'], '', OPEN_GRAPH_METAS_IMG_MAX_DIMS);
 		$image = $useravatar['image'];
 	}
 	else
@@ -162,7 +224,7 @@ function open_graph_metas_show_thread_description_showthread_threaded()
 	$headerinclude .= "\n<meta property=\"og:image\" content=\"{$image}\" />";
 }
 
-function open_graph_metas_show_thread_description_showthread_linear()
+function open_graph_metas_show_thread_showthread_linear()
 {
 	global $db, $query;
 	$db->data_seek($query, 0);
@@ -203,7 +265,7 @@ function open_graph_metas_show_thread_description_showthread_linear()
 
 	if($showpost['userusername'])
 	{
-		$useravatar = format_avatar($showpost['avatar'], $showpost['avatardimensions'], $mybb->settings['postmaxavatarsize']);
+		$useravatar = format_avatar($showpost['avatar'], '', OPEN_GRAPH_METAS_IMG_MAX_DIMS);
 		$image = $useravatar['image'];
 	}
 	else
@@ -213,6 +275,28 @@ function open_graph_metas_show_thread_description_showthread_linear()
 
 	global $headerinclude;
 	$headerinclude .= "\n<meta property=\"og:title\" content=\"{$thread['subject']} - {$mybb->settings['bbname']}\" />";
+	$headerinclude .= "\n<meta property=\"og:url\" content=\"{$url}\" />";
+	$headerinclude .= "\n<meta property=\"og:description\" content=\"{$desc}\" />";
+	$headerinclude .= "\n<meta property=\"og:image\" content=\"{$image}\" />";
+}
+
+function open_graph_metas_show_profile_member_profile()
+{
+	global $mybb, $lang, $memprofile;
+	$desc = $memprofile['username'];
+	if(!empty($memprofile['signature']))
+	{
+		$desc .= "\n".$memprofile['signature'];
+	}
+	$desc = open_graph_metas_helper_func_get_description($desc);
+
+	global $uid, $useravatar;
+	$url = str_replace("{uid}", $uid, PROFILE_URL);
+	$useravatar = format_avatar($memprofile['avatar'], '', OPEN_GRAPH_METAS_IMG_MAX_DIMS);
+	$image = $useravatar['image'];
+
+	global $headerinclude;
+	$headerinclude .= "\n<meta property=\"og:title\" content=\"{$lang->profile} - {$mybb->settings['bbname']}\" />";
 	$headerinclude .= "\n<meta property=\"og:url\" content=\"{$url}\" />";
 	$headerinclude .= "\n<meta property=\"og:description\" content=\"{$desc}\" />";
 	$headerinclude .= "\n<meta property=\"og:image\" content=\"{$image}\" />";
