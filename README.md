@@ -7,27 +7,39 @@ A very primitive MyBB plugin for showing Open Graph metas in forum/thread/etc. m
 - Search-engine-friendly-URLs-aware `og:url`.
 - Customizable fallback description for `og:description`, _now via file editing_.
 - Customizable fallback image for `og:image`, _now via file editing_.
+- Customizable `og:image` for threads/posts, _now via file editing_.
 - Supported modules:
   - **Forums**:
     - `og:description`: the forum's description or fallback description.
     - `og:image`: fallback image or current viewer's theme logo. 
   - **Threads** in linear view mode:
     - `og:description`: the message content of the first post in current viewing page.
-    - `og:image`:
+    - `og:image` _(selectable via file editing)_:
       - images attached to posts in thread, _attachments_;
-      - images embedded in posts in thread, using _\[img\] tag_;
+      - (*) images embedded in posts in thread, using _\[img\] tag_;
       - the avatar of the first post author's;
       - fallback image. 
   - **Posts** / Threads in threaded view mode:
     - `og:description`: the message content of current post.
-    - `og:image`:
+    - `og:image` _(selectable via file editing)_:
       - images attached to current post, _attachments_;
-      - images embedded in current post, using _\[img\] tag_;
+      - (*) images embedded in current post, using _\[img\] tag_;
       - current post author's avatar;
       - fallback image. 
   - **Member profiles**:
     - `og:description`: the member's signature, if applicable.
-    - `og:image`: the member's avatar. 
+    - `og:image`: the member's avatar.
+  - _**Other pages not fully supported**_:
+    - **Portal**
+    - **Member list**
+    - **Search**
+    - **Calendar**
+    - **Help**
+
+### Note and caution
+ - (*) features not implemented yet.
+ - **Images** that use attachments/thumnails **for threads and posts** are served by using MyBB's attachment script, which **are not static files**.
+
 
 ## Requirement
 - MyBB 1.8.x
@@ -35,10 +47,10 @@ A very primitive MyBB plugin for showing Open Graph metas in forum/thread/etc. m
 ## Installation
 1. Download & unzip.
 1. Upload files under **`Upload/`** folder, please maintain the folder structure.
-1. Turn to MyBB's AdminCP > Configurations > Plugin, find **Open Graph Metas** and activate it.
+1. Turn to MyBB's AdminCP > Configuration > Plugins, find **Open Graph Metas** and activate it.
 
 ## Uninstall & Removal
-1. Turn to MyBB's AdminCP > Configurations > Plugin, find **Open Graph Metas** and deactivate it.
+1. Turn to MyBB's AdminCP > Configuration > Plugins, find **Open Graph Metas** and deactivate it.
 1. Remove file **`./inc/plugins/open_graph_metas.php`** from your server.
 
 ## Upgrade Notice
