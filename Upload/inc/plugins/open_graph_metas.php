@@ -14,8 +14,12 @@ if(!defined('IN_MYBB'))
 	die('This file cannot be accessed directly.');
 }
 
+/**
+ * Plugin tweaking: default settings work properly, following constant defines can be tweaked but please with care.
+ */
+
 // Cut-off length for long description text.
-define('OPEN_GRAPH_METAS_DESC_MAX_LENGTH', 250);
+define('OPEN_GRAPH_METAS_DESC_MAX_LENGTH', 400);
 
 // Default logo, if not blank, will be used as fallback for og:image.
 define('OPEN_GRAPH_METAS_DEFAULT_LOGO', '');
@@ -26,19 +30,37 @@ define('OPEN_GRAPH_METAS_DEFAULT_DESC', '');
 // Facebook AppID.
 define('OPEN_GRAPH_METAS_FB_APPID', '');
 
-// Use attachment (image type) as og:image for threads: 0 - none and fallback will be used, 1 - full attachment if possible, fallback otherwise, 2 - thumbnail if possible, fallback otherwise.
+/**
+ * Use attachment (image type) as og:image for threads:
+ * 0 - none and fallback will be used.
+ * 1 - full attachment if possible, otherwise fallback will be used.
+ * 2 - thumbnail if possible, otherwise fallback will be used.
+ */
 define('OPEN_GRAPH_METAS_THREAD_IMAGE_USE_ATTACHMENT', 2);
 
-// Use attachment (image type) as og:image for posts: 0 - none and fallback will be used, 1 - full attachment if possible, fallback otherwise, 2 - thumbnail if possible, fallback otherwise.
+/**
+ * Use attachment (image type) as og:image for posts:
+ * 0 - none and fallback will be used.
+ * 1 - full attachment if possible, otherwise fallback will be used.
+ * 2 - thumbnail if possible, otherwise fallback will be used.
+ */
 define('OPEN_GRAPH_METAS_POST_IMAGE_USE_ATTACHMENT', 2);
 
-// Fallback image for og:image for threads: 0 - fallback to default logo, 1 - poster's avatar
+/**
+ * Fallback image for og:image for threads:
+ * 0 - fallback to default logo.
+ * 1 - poster's avatar.
+ */
 define('OPEN_GRAPH_METAS_THREAD_IMAGE_FALLBACK', 1);
 
-// Fallback image for og:image for posts: 0 - fallback to default logo, 1 - poster's avatar
+/**
+ * Fallback image for og:image for posts:
+ * 0 - fallback to default logo.
+ * 1 - poster's avatar.
+ */
 define('OPEN_GRAPH_METAS_POST_IMAGE_FALLBACK', 1);
 
-// Extra available image types, comma separated file extensions. jpg,jpeg,gif,bmp,png are already included.
+// Extra available image types, comma separated file extensions. MyBB built-in types, jpg,jpeg,gif,bmp,png, are already included.
 define('OPEN_GRAPH_METAS_EXTRA_IMG_TYPES', '');
 
 // Maximum image dimensions.
@@ -49,6 +71,10 @@ define('OPEN_GRAPH_METAS_IMG_MIN_DIMS', '200|200');
 
 /**
  * Internal constant defines, modifying them is not needed.
+ */
+
+/**
+ * Functions for MyBB integration.
  */
 
 function open_graph_metas_info()
@@ -66,6 +92,10 @@ function open_graph_metas_info()
 }
 
 /**
+ * Helper functions used by this plugin.
+ */
+
+/**
  * Helper function for formatting and cutting long text for Open Graph description.
  *
  * @param string $in Description text to be formatted.
@@ -75,9 +105,9 @@ function open_graph_metas_info()
 function open_graph_metas_helper_func_format_description($in)
 {
 	$out = htmlspecialchars_uni($in);
-	if(defined('OPEN_GRAPH_METAS_DESC_MAX_LENGTH') && my_strlen($out) > OPEN_GRAPH_METAS_DESC_MAX_LENGTH)
+	if(defined('OPEN_GRAPH_METAS_DESC_MAX_LENGTH') && my_strlen($out) > OPEN_GRAPH_METAS_DESC_MAX_LENGTH - 3)
 	{
-		$out = my_substr($out, 0, OPEN_GRAPH_METAS_DESC_MAX_LENGTH)."...";
+		$out = my_substr($out, 0, OPEN_GRAPH_METAS_DESC_MAX_LENGTH - 3)."...";
 	}
 	return $out;
 }
@@ -114,7 +144,7 @@ function open_graph_metas_helper_func_get_default_desc()
  * Helper function for generating forum logo for Open Graph image.
  * If no default logo is set for this plugin, the default logo in theme settings will be used.
  *
- * @return mixed|string The full image URL.
+ * @return string The full image URL.
  */
 function open_graph_metas_helper_func_get_default_logo()
 {
@@ -131,10 +161,10 @@ function open_graph_metas_helper_func_get_default_logo()
  *
  * @param string $title og:title
  * @param string $url og:url
- * @param string $desc og:description
+ * @param string $description og:description
  * @param string $image og:image
  * @param string $type og:type. If none given, type "website" will be used.
- * @param array $extra Extra Open Graph properties. The element key for property should include "og:", the value is for content.
+ * @param array  $extra Extra Open Graph properties. The element key for property should include "og:", the value is for content.
  *
  * @return string Final output.
  */
@@ -178,7 +208,10 @@ function open_graph_metas_helper_func_output_og_metas($title = '', $url = '', $d
 	{
 		foreach($extra as $key => $value)
 		{
-			$output .= "\n<meta property=\"{$key}\" content=\"{$value}\" />";
+			if(!in_array($key, array('fb:app_id', 'og:site_name', 'og:title', 'og:url', 'og:description', 'og:image', 'og:type')))
+			{
+				$output .= "\n<meta property=\"{$key}\" content=\"{$value}\" />";
+			}
 		}
 	}
 
@@ -190,9 +223,9 @@ function open_graph_metas_helper_func_output_og_metas($title = '', $url = '', $d
 }
 
 /**
- * Helper function for generating attachment link. No permission are checked in this function.
+ * Helper function for generating attachment link. Neither permission nor attachment/thumbnail existence is checked by this function.
  *
- * @param int $aid Attachment ID.
+ * @param int  $aid Attachment ID.
  * @param bool $use_thumbnail If true, return the attachment's thumbnail link.
  *
  * @return bool|string The full link to the attachment if correct attachment ID is given, false otherwise.
@@ -233,7 +266,7 @@ function open_graph_metas_helper_func_get_first_usable_attachment_id($fid, $pids
 	}
 
 	// Attachment viewing permission checking.
-	$forum = get_forum($fid);
+	//$forum = get_forum($fid);
 	$forumpermissions = forum_permissions($fid);
 	if($forumpermissions['canview'] == 0 || $forumpermissions['canviewthreads'] == 0 || ($forumpermissions['candlattachments'] == 0 && !$use_thumbnail))
 	{
@@ -271,9 +304,9 @@ function open_graph_metas_helper_func_get_first_usable_attachment_id($fid, $pids
 
 	// Setup image types.
 	$image_types = 'jpg,jpeg,gif,bmp,png';
-	if(defined('OPEN_GRAPH_METAS_IMG_TYPES') && !empty(OPEN_GRAPH_METAS_IMG_TYPES))
+	if(defined('OPEN_GRAPH_METAS_EXTRA_IMG_TYPES') && !empty(OPEN_GRAPH_METAS_EXTRA_IMG_TYPES))
 	{
-		$image_types .= ','.OPEN_GRAPH_METAS_IMG_TYPES;
+		$image_types .= ','.OPEN_GRAPH_METAS_EXTRA_IMG_TYPES;
 	}
 	$image_types = array_unique(array_filter(array_map('trim', explode(',', $image_types))));
 
@@ -304,6 +337,10 @@ function open_graph_metas_helper_func_get_first_usable_attachment_id($fid, $pids
 	return $ret_attachment_id;
 }
 
+/**
+ * Hooks to MyBB modules.
+ */
+
 $plugins->add_hook('global_end', 'open_graph_metas_show_og_info_general');
 
 $plugins->add_hook('forumdisplay_end', 'open_graph_metas_show_forum_forumdisplay');
@@ -312,13 +349,18 @@ $plugins->add_hook('showthread_linear', 'open_graph_metas_show_thread_showthread
 $plugins->add_hook('member_profile_end', 'open_graph_metas_show_profile_member_profile');
 
 /**
+ * Functions hooked to MyBB modules.
+ */
+
+/**
  * Open Graph metas for common pages.
  */
 function open_graph_metas_show_og_info_general()
 {
 	global $mybb, $headerinclude;
 
-	if(!defined('THIS_SCRIPT') || (THIS_SCRIPT != 'forumdisplay.php' && THIS_SCRIPT != 'showthread.php' && THIS_SCRIPT != 'member.php'))
+	// Metas won't show up in none-MyBB pages, since the plugin itself can't handle non-built-in URLs correctly.
+	if(defined('THIS_SCRIPT') && (THIS_SCRIPT != 'forumdisplay.php' && THIS_SCRIPT != 'showthread.php' && THIS_SCRIPT != 'member.php'))
 	{
 		// og:url
 		$url = '';
@@ -511,7 +553,7 @@ function open_graph_metas_show_thread_showthread_linear()
 	global $parser;
 	global $tid, $pid, $page, $highlight, $threadmode;
 
-	// database manipulation for fetching the first post in current page, and get all pids.
+	// database manipulation for fetching the first post in current page, and getting all post IDs in this page.
 	$db->data_seek($query, 0);
 	$showpost = $db->fetch_array($query);
 	$pids = array($showpost['pid']);
@@ -552,6 +594,7 @@ function open_graph_metas_show_thread_showthread_linear()
 	$url = open_graph_metas_helper_func_get_full_url($url.$highlight.$threadmode);
 	if(!empty($mybb->input['pid']))
 	{
+		// Anchors may not recognized by some social service parser.
 		$url .= "#pid{$pid}";
 	}
 
@@ -607,7 +650,8 @@ function open_graph_metas_show_profile_member_profile()
 	$desc = open_graph_metas_helper_func_format_description($desc);
 
 	// og:url
-	$url = open_graph_metas_helper_func_get_full_url(str_replace("{uid}", $uid, PROFILE_URL));
+	$url = str_replace("{uid}", $uid, PROFILE_URL);
+	$url = open_graph_metas_helper_func_get_full_url($url);
 
 	// og:image
 	$useravatar = format_avatar($memprofile['avatar'], '', OPEN_GRAPH_METAS_IMG_MAX_DIMS);
