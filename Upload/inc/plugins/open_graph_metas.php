@@ -321,13 +321,13 @@ function open_graph_metas_show_og_info_general()
 	if(!defined('THIS_SCRIPT') || (THIS_SCRIPT != 'forumdisplay.php' && THIS_SCRIPT != 'showthread.php' && THIS_SCRIPT != 'member.php'))
 	{
 		// og:url
-		//$url = open_graph_metas_helper_func_get_url('');
+		$url = '';
 
 		// og:title
 		$title = '';
 		if(defined('THIS_SCRIPT'))
 		{
-			// Update og:url.
+			// Update og:url, though not accurate if query exists in link.
 			$url = open_graph_metas_helper_func_get_full_url(THIS_SCRIPT);
 
 			// Update og:title.
@@ -465,6 +465,7 @@ function open_graph_metas_show_thread_showthread_threaded()
 	$url = open_graph_metas_helper_func_get_full_url($url.$highlight.$threadmode);
 	if(!empty($mybb->input['pid']))
 	{
+		// Anchors may not recognized by some social service parser.
 		$url .= "#pid{$pid}";
 	}
 
@@ -556,13 +557,13 @@ function open_graph_metas_show_thread_showthread_linear()
 
 	// og:image
 	$image = '';
-	if(defined('OPEN_GRAPH_METAS_POST_IMAGE_USE_ATTACHMENT') && OPEN_GRAPH_METAS_THREAD_IMAGE_USE_ATTACHMENT == 1)
+	if(defined('OPEN_GRAPH_METAS_THREAD_IMAGE_USE_ATTACHMENT') && OPEN_GRAPH_METAS_THREAD_IMAGE_USE_ATTACHMENT == 1)
 	{
 		// Use full image.
 		$aid = open_graph_metas_helper_func_get_first_usable_attachment_id($forum['fid'], $pids);
 		$image = open_graph_metas_helper_func_get_attachment_link($aid);
 	}
-	else if(defined('OPEN_GRAPH_METAS_POST_IMAGE_USE_ATTACHMENT') && OPEN_GRAPH_METAS_THREAD_IMAGE_USE_ATTACHMENT == 2)
+	else if(defined('OPEN_GRAPH_METAS_THREAD_IMAGE_USE_ATTACHMENT') && OPEN_GRAPH_METAS_THREAD_IMAGE_USE_ATTACHMENT == 2)
 	{
 		// Use thumbnail.
 		$aid = open_graph_metas_helper_func_get_first_usable_attachment_id($forum['fid'], $pids, true);
@@ -571,7 +572,7 @@ function open_graph_metas_show_thread_showthread_linear()
 	// Fallback to use avatar or default logo.
 	if(empty($image))
 	{
-		if((!defined('OPEN_GRAPH_METAS_POST_IMAGE_FALLBACK') || OPEN_GRAPH_METAS_POST_IMAGE_FALLBACK == 1) && $showpost['userusername'])
+		if((!defined('OPEN_GRAPH_METAS_THREAD_IMAGE_FALLBACK') || OPEN_GRAPH_METAS_THREAD_IMAGE_FALLBACK == 1) && $showpost['userusername'])
 		{
 			$useravatar = format_avatar($showpost['avatar'], '', OPEN_GRAPH_METAS_IMG_MAX_DIMS);
 			$image = $useravatar['image'];
