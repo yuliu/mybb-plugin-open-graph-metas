@@ -2,8 +2,8 @@
 A very primitive MyBB plugin for showing Open Graph metas in forum/thread/etc. modules.
 
 ## Features
-- Output Open Graph metas for forum modules. Read the Open Graph protocol: https://ogp.me/.
-- No template editing involves.
+- Output Open Graph metas for various forum modules. Read the Open Graph protocol: https://ogp.me/.
+- No template editing requires.
 - Search-engine-friendly-URLs-aware `og:url`.
 - Customizable fallback description for `og:description`, _now via file editing_.
 - Customizable fallback image for `og:image`, _now via file editing_.
@@ -55,5 +55,5 @@ A very primitive MyBB plugin for showing Open Graph metas in forum/thread/etc. m
 
 ## Upgrade Notice
 - This plugin tends to get changed before its stable release. Please use with caution.
-- Plugin name may be changed to **Social Integrations** or sort of, if more related social integrations for infomation sharing, for example Twitter Card Tags.
+- Plugin name may be changed to **Social Integrations** or sort of, if more related social integrations for information sharing, for example Twitter Card Tags, have been added.
 - Folder structure may change during version upgrades.
